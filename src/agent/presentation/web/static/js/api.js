@@ -54,3 +54,59 @@ export async function createTable(tableData) {
 
     return await response.json();
 }
+
+export async function deleteTable(tableName) {
+    const response = await fetch(`/api/database/tables/${tableName}`, {
+        method: 'DELETE'
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || '테이블 삭제에 실패했습니다.');
+    }
+
+    return await response.json();
+}
+
+export async function renameTable(oldName, newName) {
+    const response = await fetch(`/api/database/tables/${oldName}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_name: newName })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || '테이블 이름 변경에 실패했습니다.');
+    }
+
+    return await response.json();
+}
+
+export async function addColumn(tableName, columnData) {
+    const response = await fetch(`/api/database/tables/${tableName}/columns`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ column: columnData })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || '컬럼 추가에 실패했습니다.');
+    }
+
+    return await response.json();
+}
+
+export async function dropColumn(tableName, columnName) {
+    const response = await fetch(`/api/database/tables/${tableName}/columns/${columnName}`, {
+        method: 'DELETE'
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || '컬럼 삭제에 실패했습니다.');
+    }
+
+    return await response.json();
+}

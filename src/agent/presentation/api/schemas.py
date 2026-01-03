@@ -73,3 +73,20 @@ class CreateTableRequestDTO(BaseModel):
                 "테이블명은 영문자나 언더바(_)로 시작해야 하며, 영문자, 숫자, 언더바만 포함할 수 있습니다."
             )
         return v
+
+
+class RenameTableRequestDTO(BaseModel):
+    new_name: str
+
+    @field_validator("new_name")
+    @classmethod
+    def validate_new_name(cls, v: str) -> str:
+        if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", v):
+            raise ValueError(
+                "테이블명은 영문자나 언더바(_)로 시작해야 하며, 영문자, 숫자, 언더바만 포함할 수 있습니다."
+            )
+        return v
+
+
+class AddColumnRequestDTO(BaseModel):
+    column: ColumnDefinitionDTO

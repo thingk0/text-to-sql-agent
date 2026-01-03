@@ -6,6 +6,7 @@ from sqlalchemy.engine import Engine
 
 from agent.infrastructure.database.connection import Base, get_engine
 from agent.presentation.api.schemas import (
+    ColumnDefinitionDTO,
     ColumnInfoDTO,
     CreateTableRequestDTO,
     DatabaseInfoDTO,
@@ -112,6 +113,47 @@ class SchemaService:
         with self._engine.begin() as conn:
             conn.execute(text(sql))
 
+    def drop_table(self, table_name: str) -> None:
+        """테이블을 삭제합니다."""
+        if table_name in self._internal_tables:
+            raise ValueError(f"시스템 테이블 '{table_name}'은(는) 삭제할 수 없습니다.")
+
+        sql = f"DROP TABLE IF EXISTS {table_name}"
+        with self._engine.begin() as conn:
+            conn.execute(text(sql))
+
+    def rename_table(self, old_name: str, new_name: str) -> None:
+        """테이블 이름을 변경합니다."""
+        if old_name in self._internal_tables:
+            raise ValueError(f"시스템 테이블 '{old_name}'은(는) 이름을 변경할 수 없습니다.")
+
+        sql = f"ALTER TABLE {old_name} RENAME TO {new_name}"
+        with self._engine.begin() as conn:
+            conn.execute(text(sql))
+
+    def add_column(self, table_name: str, column: ColumnDefinitionDTO) -> None:
+        """테이블에 컬럼을 추가합니다."""
+        if table_name in self._internal_tables:
+            raise ValueError(f"시스템 테이블 '{table_name}'은(는) 수정할 수 없습니다.")
+
+        parts = [f"ALTER TABLE {table_name} ADD COLUMN {column.name} {column.type}"]
+        if not column.is_nullable:
+            parts.append("NOT NULL")
+        if column.default_value:
+            parts.append(f"DEFAULT '{column.default_value}'")
+
+        sql = " ".join(parts)
+        with self._engine.begin() as conn:
+            conn.execute(text(sql))
+
+    def drop_column(self, table_name: str, column_name: str) -> None:
+        """테이블에서 컬럼을 삭제합니다."""
+        if table_name in self._internal_tables:
+            raise ValueError(f"시스템 테이블 '{table_name}'은(는) 수정할 수 없습니다.")
+
+        sql = f"ALTER TABLE {table_name} DROP COLUMN {column_name}"
+        with self._engine.begin() as conn:
+            conn.execute(text(sql))
 
 
 def get_schema_service(db_engine: Annotated[Engine, Depends(get_engine)]) -> SchemaService:

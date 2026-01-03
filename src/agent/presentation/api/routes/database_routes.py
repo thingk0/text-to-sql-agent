@@ -4,8 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from agent.infrastructure.database.schema_service import SchemaService, get_schema_service
 from agent.presentation.api.schemas import (
+    AddColumnRequestDTO,
     CreateTableRequestDTO,
     DatabaseInfoDTO,
+    RenameTableRequestDTO,
     SchemaContextDTO,
     TableInfoDTO,
     TablesListDTO,
@@ -64,3 +66,57 @@ def create_table(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
+@router.delete("/tables/{table_name}", status_code=200)
+def delete_table(
+    table_name: str,
+    service: Annotated[SchemaService, Depends(get_schema_service)],
+):
+    """테이블을 삭제합니다."""
+    try:
+        service.drop_table(table_name)
+        return {"message": f"Table '{table_name}' deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.patch("/tables/{table_name}", status_code=200)
+def rename_table(
+    table_name: str,
+    request: RenameTableRequestDTO,
+    service: Annotated[SchemaService, Depends(get_schema_service)],
+):
+    """테이블 이름을 변경합니다."""
+    try:
+        service.rename_table(table_name, request.new_name)
+        return {"message": f"Table renamed from '{table_name}' to '{request.new_name}'"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/tables/{table_name}/columns", status_code=201)
+def add_column(
+    table_name: str,
+    request: AddColumnRequestDTO,
+    service: Annotated[SchemaService, Depends(get_schema_service)],
+):
+    """테이블에 컬럼을 추가합니다."""
+    try:
+        service.add_column(table_name, request.column)
+        return {"message": f"Column '{request.column.name}' added to '{table_name}'"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete("/tables/{table_name}/columns/{column_name}", status_code=200)
+def drop_column(
+    table_name: str,
+    column_name: str,
+    service: Annotated[SchemaService, Depends(get_schema_service)],
+):
+    """테이블에서 컬럼을 삭제합니다."""
+    try:
+        service.drop_column(table_name, column_name)
+        return {"message": f"Column '{column_name}' dropped from '{table_name}'"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

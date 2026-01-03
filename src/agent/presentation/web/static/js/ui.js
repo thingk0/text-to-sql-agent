@@ -56,7 +56,10 @@ export function addMessage(content, type = 'user') {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
+let currentTableName = ''; // Store current table name for modal actions
+
 export function showTableModal(tableName, columns) {
+    currentTableName = tableName;
     const modal = document.getElementById('table-modal');
     const nameEl = document.getElementById('modal-table-name');
     const listEl = document.getElementById('modal-columns-list');
@@ -73,18 +76,54 @@ export function showTableModal(tableName, columns) {
             <td class="px-6 py-3">
                 <span class="text-[12px] font-mono text-slate-400 bg-slate-50 border border-[#ececec] px-2 py-0.5 rounded-lg group-hover:text-indigo-500 group-hover:border-indigo-100 transition-all">${col.type}</span>
             </td>
-            <td class="px-6 py-3 text-right">
+            <td class="px-6 py-3">
                 ${col.nullable ? '<span class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">NULL</span>' : '<span class="text-[10px] text-red-400 font-bold uppercase tracking-tighter">NOT NULL</span>'}
+            </td>
+            <td class="px-6 py-3 text-right">
+                <button onclick="handleDropColumn('${col.name}')" class="p-1.5 text-slate-300 hover:text-red-500 transition-colors hover:bg-red-50 rounded-lg ${col.primary_key ? 'opacity-30 pointer-events-none' : ''}" title="${col.primary_key ? 'PK는 삭제할 수 없습니다' : '컬럼 삭제'}">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
             </td>
         </tr>
     `).join('');
+
+    // Reset add column form
+    hideAddColumnForm();
 
     document.body.classList.add('show-table-modal');
     lucide.createIcons();
 }
 
+export function getCurrentTableName() {
+    return currentTableName;
+}
+
 export function hideTableModal() {
     document.body.classList.remove('show-table-modal');
+    currentTableName = '';
+}
+
+export function showAddColumnForm() {
+    const form = document.getElementById('add-column-form');
+    form.classList.remove('hidden');
+    document.getElementById('new-col-name').value = '';
+    document.getElementById('new-col-type').value = 'TEXT';
+    document.getElementById('new-col-null').checked = true;
+    document.getElementById('add-column-error').classList.add('hidden');
+    lucide.createIcons();
+}
+
+export function hideAddColumnForm() {
+    const form = document.getElementById('add-column-form');
+    if (form) form.classList.add('hidden');
+}
+
+export function showAddColumnError(message) {
+    const errorEl = document.getElementById('add-column-error');
+    if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.remove('hidden');
+    }
 }
 
 export function showCreateTableModal() {
