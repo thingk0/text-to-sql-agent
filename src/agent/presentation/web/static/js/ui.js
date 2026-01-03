@@ -298,7 +298,10 @@ export function addSQLMessage(query, explanation) {
     pre.className = 'language-sql'; // Prism class
     const code = document.createElement('code');
     code.className = 'language-sql';
-    code.textContent = query;
+
+    // Format SQL for better readability
+    const formattedSQL = sqlFormatter.format(query, { language: 'sql' });
+    code.textContent = formattedSQL;
     pre.appendChild(code);
 
     codeWrapper.appendChild(codeHeader);
