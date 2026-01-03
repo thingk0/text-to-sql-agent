@@ -46,16 +46,33 @@ API는 `http://localhost:8000`에서 사용할 수 있습니다.
 - API 문서: `http://localhost:8000/docs`
 - 대체 문서: `http://localhost:8000/redoc`
 
-## 프로젝트 구조
+## 프로젝트 구조 (DDD)
 
 ```
 text-to-sql-agent/
 ├── src/
 │   └── agent/
-│       ├── __init__.py
-│       ├── main.py          # FastAPI 애플리케이션
-│       ├── config.py         # 설정
-│       └── database.py       # 데이터베이스 설정
+│       ├── main.py                    # FastAPI 엔트리포인트
+│       ├── config.py                  # 전역 설정
+│       │
+│       ├── domain/                    # 도메인 레이어
+│       │   ├── entities/              # 도메인 엔티티
+│       │   ├── repositories/          # 리포지토리 인터페이스
+│       │   └── services/              # 도메인 서비스
+│       │
+│       ├── application/               # 애플리케이션 레이어
+│       │   └── use_cases/             # 유스케이스
+│       │
+│       ├── infrastructure/            # 인프라 레이어
+│       │   ├── database/              # DB 연결 및 모델
+│       │   ├── repositories/          # 리포지토리 구현체
+│       │   └── llm/                   # LLM 클라이언트
+│       │
+│       ├── presentation/              # 프레젠테이션 레이어
+│       │   ├── api/routes/            # API 엔드포인트
+│       │   └── web/                   # 웹 UI (static, templates)
+│       │
+│       └── shared/                    # 공유 유틸리티
 ├── tests/
 ├── .env.example
 ├── .gitignore

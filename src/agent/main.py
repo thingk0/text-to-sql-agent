@@ -1,31 +1,23 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
-from agent.config import settings
-from agent.database import init_db, shutdown_db
+from agent.infrastructure.database.connection import init_db, shutdown_db
+from agent.presentation.api.routes import query_routes
+from agent.presentation.web.routes import router as web_router
 
-# 디렉토리 경로 설정
-BASE_DIR = Path(__file__).resolve().parent
-STATIC_DIR = BASE_DIR / "static"
-TEMPLATES_DIR = BASE_DIR / "templates"
-
-# 디렉토리 생성
-STATIC_DIR.mkdir(exist_ok=True)
-TEMPLATES_DIR.mkdir(exist_ok=True)
+# 정적 파일 경로
+WEB_DIR = Path(__file__).resolve().parent / "presentation" / "web"
+STATIC_DIR = WEB_DIR / "static"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
-    # Startup
     init_db()
     yield
-    # Shutdown
     shutdown_db()
 
 
@@ -36,25 +28,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# 정적 파일 및 템플릿 설정
+# 정적 파일 마운트
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
-templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
+# 라우터 등록
+app.include_router(web_router)
+app.include_router(query_routes.router)
 
-@app.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def home(request: Request):
-    """Home page with web UI."""
-    return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
-            "title": "Text-to-SQL Agent",
-            "env": settings.app_env,
-        },
-    )
-
-
-@app.get("/api/health")
-async def health():
-    """Health check endpoint."""
-    return {"status": "healthy"}
