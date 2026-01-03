@@ -1,5 +1,3 @@
-"""Basic tests for the text-to-sql-agent package."""
-
 from agent import __version__
 
 

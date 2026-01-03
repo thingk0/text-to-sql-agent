@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -6,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from agent.config import settings
+from agent.database import init_db, shutdown_db
 
 # 디렉토리 경로 설정
 BASE_DIR = Path(__file__).resolve().parent
@@ -16,10 +18,22 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR.mkdir(exist_ok=True)
 TEMPLATES_DIR.mkdir(exist_ok=True)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan events."""
+    # Startup
+    init_db()
+    yield
+    # Shutdown
+    shutdown_db()
+
+
 app = FastAPI(
     title="Text-to-SQL Agent",
     description="A text-to-SQL agent using LangChain and LangGraph",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 # 정적 파일 및 템플릿 설정

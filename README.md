@@ -6,7 +6,7 @@ LangChain과 LangGraph를 사용한 FastAPI 기반 Text-to-SQL 에이전트입�
 
 - **FastAPI**: API 구축을 위한 현대적인 웹 프레임워크
 - **SQLAlchemy**: SQL 툴킷 및 ORM
-- **pglite**: 경량 PostgreSQL
+- **SQLite**: 경량 로컬 데이터베이스
 - **LangChain**: LLM 애플리케이션 개발 프레임워크
 - **LangGraph**: LLM을 사용한 상태 기반 멀티 액터 애플리케이션 구축 라이브러리
 
