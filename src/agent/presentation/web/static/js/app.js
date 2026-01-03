@@ -21,12 +21,15 @@ window.setExample = (text) => {
 window.showTableInfo = async (tableName) => {
     try {
         const data = await api.fetchTableDetail(tableName);
-        const formatted = utils.formatTableInfo(tableName, data.columns);
-        alert(formatted);
+        ui.showTableModal(tableName, data.columns);
     } catch (error) {
         console.error('Failed to load table info:', error);
         alert('테이블 정보를 불러올 수 없습니다.');
     }
+};
+
+window.closeTableModal = () => {
+    ui.hideTableModal();
 };
 
 // 메인 초기화
@@ -42,6 +45,9 @@ async function init() {
 
         // 스키마 컨텍스트 로드
         schemaContext = await api.fetchSchemaContext();
+
+        // 사이드바 토글 초기화
+        ui.initSidebarToggle();
     } catch (error) {
         console.error('Initialization failed:', error);
     }

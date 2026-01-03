@@ -56,6 +56,53 @@ export function addMessage(content, type = 'user') {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
+export function showTableModal(tableName, columns) {
+    const modal = document.getElementById('table-modal');
+    const nameEl = document.getElementById('modal-table-name');
+    const listEl = document.getElementById('modal-columns-list');
+
+    nameEl.textContent = tableName;
+    listEl.innerHTML = columns.map(col => `
+        <div class="flex items-center justify-between p-3 bg-slate-50 border border-[#ececec] rounded-2xl hover:border-indigo-200 transition-colors group">
+            <div class="flex items-center gap-4">
+                <div class="w-8 flex justify-center">
+                    ${col.primary_key ? '<i data-lucide="key" class="w-4 h-4 text-amber-500 fill-amber-500/20"></i>' : '<div class="w-2 h-2 bg-slate-300 rounded-full"></div>'}
+                </div>
+                <div>
+                    <span class="block text-sm font-semibold text-slate-700">${col.name}</span>
+                    ${col.nullable ? '' : '<span class="text-[10px] text-red-400 font-bold tracking-tighter uppercase">Required</span>'}
+                </div>
+            </div>
+            <span class="text-[13px] font-mono text-slate-400 bg-white border border-[#ececec] px-2 py-0.5 rounded-lg group-hover:text-indigo-500 group-hover:border-indigo-100 transition-all">${col.type}</span>
+        </div>
+    `).join('');
+
+    document.body.classList.add('modal-show');
+    lucide.createIcons();
+}
+
+export function hideTableModal() {
+    document.body.classList.remove('modal-show');
+}
+
+export function initSidebarToggle() {
+    const sidebar = document.querySelector('aside');
+    const closeBtn = document.getElementById('sidebar-close-btn');
+    const openBtn = document.getElementById('sidebar-open-btn');
+
+    if (!sidebar || !closeBtn || !openBtn) return;
+
+    closeBtn.addEventListener('click', () => {
+        sidebar.classList.add('sidebar-collapsed');
+        openBtn.classList.remove('hidden');
+    });
+
+    openBtn.addEventListener('click', () => {
+        sidebar.classList.remove('sidebar-collapsed');
+        openBtn.classList.add('hidden');
+    });
+}
+
 export function addSQLMessage(query, explanation) {
     hideWelcome();
 

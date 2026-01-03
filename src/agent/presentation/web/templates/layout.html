@@ -13,6 +13,8 @@
     <style>
         body {
             font-family: 'Pretendard', sans-serif;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
         }
 
         .scrollbar-hide::-webkit-scrollbar {
@@ -36,6 +38,19 @@
         .animate-fade-in {
             animation: fadeIn 0.4s ease-out;
         }
+
+        /* 사이드바 애니메이션 */
+        aside {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: width, transform;
+        }
+
+        .sidebar-collapsed {
+            width: 0 !important;
+            transform: translateX(-260px);
+            visibility: hidden;
+            pointer-events: none;
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -44,10 +59,12 @@
     <div class="flex h-full">
         {% include 'components/sidebar.html' %}
 
-        <main class="flex-1 flex flex-col relative h-full bg-white transition-all">
+        <main class="flex-1 flex flex-col relative h-full bg-white">
             {% block content %}{% endblock %}
         </main>
     </div>
+
+    {% include 'components/table_modal.html' %}
 
     {% block extra_js %}{% endblock %}
     <script>
