@@ -180,22 +180,33 @@ async function handleSubmit() {
     queryInput.style.height = 'auto';
     submitBtn.disabled = true;
 
+    // Show loading indicator
+    ui.showLoading();
+
     try {
         const result = await api.generateSQL(query, schemaContext);
+        // addSQLMessage internal logic calls removeLoading()
         const codeWrapper = ui.addSQLMessage(result.generated_sql, '요청하신 쿼리를 생성했습니다.');
 
         // 복사 버튼 이벤트 바인딩
         const copyBtn = codeWrapper.querySelector('.copy-btn');
+        const copyBtnText = copyBtn.querySelector('span');
+
         copyBtn.addEventListener('click', () => {
             utils.copyToClipboard(result.generated_sql);
-            copyBtn.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Copied!';
+            copyBtnText.textContent = 'COPIED!';
+            const icon = copyBtn.querySelector('i');
+            icon.setAttribute('data-lucide', 'check');
             lucide.createIcons();
+
             setTimeout(() => {
-                copyBtn.innerHTML = '<i data-lucide="copy" class="w-3 h-3"></i> Copy';
+                copyBtnText.textContent = 'COPY';
+                icon.setAttribute('data-lucide', 'copy');
                 lucide.createIcons();
             }, 2000);
         });
     } catch (error) {
+        ui.removeLoading();
         ui.addMessage('SQL 생성 중 오류가 발생했습니다. 다시 시도해주세요.', 'assistant');
     } finally {
         submitBtn.disabled = false;

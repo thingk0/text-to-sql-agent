@@ -13,12 +13,12 @@ export function hideWelcome() {
 
 export function createAvatar(type) {
     const div = document.createElement('div');
-    div.className = `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 ${type === 'user' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'
+    div.className = `w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${type === 'user' ? 'bg-black text-white' : 'bg-slate-100 text-slate-900 border border-slate-200'
         }`;
 
     const icon = document.createElement('i');
     icon.setAttribute('data-lucide', type === 'user' ? 'user' : 'bot');
-    icon.className = 'w-5 h-5';
+    icon.className = 'w-4 h-4';
     div.appendChild(icon);
 
     return div;
@@ -28,27 +28,31 @@ export function addMessage(content, type = 'user') {
     hideWelcome();
 
     const wrapper = document.createElement('div');
-    wrapper.className = `w-full py-6 flex ${type === 'user' ? 'bg-white' : 'bg-slate-50'}`;
+    wrapper.className = `w-full flex ${type === 'user' ? 'justify-end' : 'justify-start'} mb-6 px-4`;
 
     const container = document.createElement('div');
-    container.className = 'max-w-3xl mx-auto flex gap-4 px-4 w-full';
+    container.className = `flex gap-3 max-w-[85%] ${type === 'user' ? 'flex-row-reverse' : 'flex-row'} animate-fade-in`;
 
     const avatar = createAvatar(type);
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'flex-1 space-y-2';
 
-    const name = document.createElement('p');
-    name.className = 'text-sm font-bold text-slate-900 capitalize';
-    name.textContent = type === 'user' ? 'User' : 'Agent';
+    const contentWrapper = document.createElement('div');
+    contentWrapper.className = `flex flex-col ${type === 'user' ? 'items-end' : 'items-start'}`;
 
-    const message = document.createElement('div');
-    message.className = 'text-[15px] leading-relaxed text-slate-800 whitespace-pre-wrap';
-    message.textContent = content;
+    const bubble = document.createElement('div');
+    bubble.className = `px-4 py-3 rounded-2xl text-[14.5px] leading-relaxed ${type === 'user'
+        ? 'bg-black text-white rounded-tr-none shadow-sm'
+        : 'bg-white border border-[#ececec] text-slate-800 rounded-tl-none shadow-sm prose prose-slate max-w-none'
+        }`;
 
-    contentDiv.appendChild(name);
-    contentDiv.appendChild(message);
+    if (type === 'user') {
+        bubble.textContent = content;
+    } else {
+        bubble.innerHTML = marked.parse(content);
+    }
+
+    contentWrapper.appendChild(bubble);
     container.appendChild(avatar);
-    container.appendChild(contentDiv);
+    container.appendChild(contentWrapper);
     wrapper.appendChild(container);
     messagesContainer.appendChild(wrapper);
 
@@ -231,59 +235,88 @@ export function initSidebarToggle() {
     });
 }
 
-export function addSQLMessage(query, explanation) {
+export function showLoading() {
     hideWelcome();
-
     const wrapper = document.createElement('div');
-    wrapper.className = 'w-full py-6 flex bg-slate-50';
+    wrapper.className = 'w-full flex justify-start mb-6 px-4 loading-indicator';
 
     const container = document.createElement('div');
-    container.className = 'max-w-3xl mx-auto flex gap-4 px-4 w-full';
+    container.className = 'flex gap-3 max-w-[85%] flex-row animate-fade-in';
+
+    const avatar = createAvatar('assistant');
+    const bubble = document.createElement('div');
+    bubble.className = 'px-5 py-4 bg-white border border-[#ececec] text-slate-800 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-1.5';
+    bubble.innerHTML = `
+        <div class="dot-flashing"></div>
+        <div class="dot-flashing"></div>
+        <div class="dot-flashing"></div>
+    `;
+
+    container.appendChild(avatar);
+    container.appendChild(bubble);
+    wrapper.appendChild(container);
+    messagesContainer.appendChild(wrapper);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+export function removeLoading() {
+    const loader = document.querySelector('.loading-indicator');
+    if (loader) loader.remove();
+}
+
+export function addSQLMessage(query, explanation) {
+    hideWelcome();
+    removeLoading();
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'w-full flex justify-start mb-6 px-4';
+
+    const container = document.createElement('div');
+    container.className = 'flex gap-3 max-w-[90%] flex-row animate-fade-in';
 
     const avatar = createAvatar('assistant');
     const contentDiv = document.createElement('div');
-    contentDiv.className = 'flex-1 space-y-4';
+    contentDiv.className = 'flex-1 space-y-3';
 
-    const name = document.createElement('p');
-    name.className = 'text-sm font-bold text-slate-900';
-    name.textContent = 'Agent';
-
-    const explanationP = document.createElement('p');
-    explanationP.className = 'text-[15px] leading-relaxed text-slate-800';
-    explanationP.textContent = explanation;
+    const explanationBubble = document.createElement('div');
+    explanationBubble.className = 'px-4 py-3 bg-white border border-[#ececec] text-slate-800 rounded-2xl rounded-tl-none shadow-sm prose prose-slate max-w-none text-[14.5px] leading-relaxed';
+    explanationBubble.innerHTML = marked.parse(explanation);
 
     const codeWrapper = document.createElement('div');
-    codeWrapper.className = 'bg-[#1e1e1e] rounded-xl overflow-hidden shadow-sm border border-slate-800';
+    codeWrapper.className = 'bg-[#1e1e1e] rounded-2xl overflow-hidden shadow-md border border-slate-800 animate-fade-in';
 
     const codeHeader = document.createElement('div');
-    codeHeader.className = 'bg-black/20 px-4 py-2 flex justify-between items-center border-b border-white/5';
+    codeHeader.className = 'bg-black/40 px-4 py-2 flex justify-between items-center border-b border-white/5';
     codeHeader.innerHTML = `
-        <span class="text-xs font-mono text-slate-400 capitalize">sql</span>
-        <button class="copy-btn text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1">
-            <i data-lucide="copy" class="w-3 h-3"></i> Copy
+        <span class="text-[11px] font-bold tracking-wider text-slate-500 uppercase">sql</span>
+        <button class="copy-btn text-[11px] font-bold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> <span>COPY</span>
         </button>
     `;
 
     const pre = document.createElement('pre');
-    pre.className = 'p-4 overflow-x-auto text-[13px] font-mono text-[#4ec9b0] leading-relaxed scrollbar-hide';
+    pre.className = 'language-sql'; // Prism class
     const code = document.createElement('code');
+    code.className = 'language-sql';
     code.textContent = query;
     pre.appendChild(code);
 
     codeWrapper.appendChild(codeHeader);
     codeWrapper.appendChild(pre);
-    contentDiv.appendChild(name);
-    contentDiv.appendChild(explanationP);
+    contentDiv.appendChild(explanationBubble);
     contentDiv.appendChild(codeWrapper);
     container.appendChild(avatar);
     container.appendChild(contentDiv);
     wrapper.appendChild(container);
     messagesContainer.appendChild(wrapper);
 
+    // Apply Prism highlighting
+    Prism.highlightElement(code);
+
     lucide.createIcons();
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-    return codeWrapper; // 복사 이벤트 바인딩을 위해 반환
+    return codeWrapper;
 }
 
 export function updateDatabaseStatus(data) {

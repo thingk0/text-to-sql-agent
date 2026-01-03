@@ -7,6 +7,10 @@
     <title>{% block title %}{{ title }}{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Pretendard:wght@100;200;300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
@@ -28,15 +32,85 @@
         @keyframes fadeIn {
             from {
                 opacity: 0;
+                transform: translateY(8px);
             }
 
             to {
                 opacity: 1;
+                transform: translateY(0);
             }
         }
 
         .animate-fade-in {
-            animation: fadeIn 0.4s ease-out;
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes dotFlashing {
+            0% {
+                opacity: 0.2;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.2;
+            }
+        }
+
+        .dot-flashing {
+            width: 6px;
+            height: 6px;
+            border-radius: 5px;
+            background-color: #94a3b8;
+            animation: dotFlashing 1s infinite linear alternate;
+            display: inline-block;
+        }
+
+        .dot-flashing:nth-child(2) {
+            animation-delay: 0.33s;
+        }
+
+        .dot-flashing:nth-child(3) {
+            animation-delay: 0.66s;
+        }
+
+        /* Prism Override */
+        pre[class*="language-"] {
+            margin: 0 !important;
+            padding: 1rem !important;
+            background: transparent !important;
+            font-size: 0.85rem !important;
+        }
+
+        code[class*="language-"] {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+            text-shadow: none !important;
+        }
+
+        /* Markdown Styles */
+        .prose p {
+            margin-bottom: 0.75rem;
+        }
+
+        .prose p:last-child {
+            margin-bottom: 0;
+        }
+
+        .prose strong {
+            color: inherit;
+            font-weight: 700;
+        }
+
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .prose li {
+            margin-bottom: 0.25rem;
         }
 
         /* 사이드바 애니메이션 */
