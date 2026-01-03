@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from agent.infrastructure.database.connection import init_db, shutdown_db
-from agent.presentation.api.routes import query_routes
+from agent.presentation.api.routes import database_routes, query_routes
 from agent.presentation.web.routes import router as web_router
 
 # 정적 파일 경로
@@ -34,4 +34,4 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 # 라우터 등록
 app.include_router(web_router)
 app.include_router(query_routes.router)
-
+app.include_router(database_routes.router)
