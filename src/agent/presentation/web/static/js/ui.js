@@ -63,18 +63,20 @@ export function showTableModal(tableName, columns) {
 
     nameEl.textContent = tableName;
     listEl.innerHTML = columns.map(col => `
-        <div class="flex items-center justify-between p-3 bg-slate-50 border border-[#ececec] rounded-2xl hover:border-indigo-200 transition-colors group">
-            <div class="flex items-center gap-4">
-                <div class="w-8 flex justify-center">
-                    ${col.primary_key ? '<i data-lucide="key" class="w-4 h-4 text-amber-500 fill-amber-500/20"></i>' : '<div class="w-2 h-2 bg-slate-300 rounded-full"></div>'}
-                </div>
-                <div>
-                    <span class="block text-sm font-semibold text-slate-700">${col.name}</span>
-                    ${col.nullable ? '' : '<span class="text-[10px] text-red-400 font-bold tracking-tighter uppercase">Required</span>'}
-                </div>
-            </div>
-            <span class="text-[13px] font-mono text-slate-400 bg-white border border-[#ececec] px-2 py-0.5 rounded-lg group-hover:text-indigo-500 group-hover:border-indigo-100 transition-all">${col.type}</span>
-        </div>
+        <tr class="hover:bg-indigo-50/30 transition-colors group">
+            <td class="px-6 py-3 text-center">
+                ${col.primary_key ? '<i data-lucide="key" class="w-4 h-4 text-amber-500 fill-amber-500/20 mx-auto"></i>' : '<div class="w-1.5 h-1.5 bg-slate-200 rounded-full mx-auto"></div>'}
+            </td>
+            <td class="px-6 py-3">
+                <span class="text-sm font-semibold text-slate-700">${col.name}</span>
+            </td>
+            <td class="px-6 py-3">
+                <span class="text-[12px] font-mono text-slate-400 bg-slate-50 border border-[#ececec] px-2 py-0.5 rounded-lg group-hover:text-indigo-500 group-hover:border-indigo-100 transition-all">${col.type}</span>
+            </td>
+            <td class="px-6 py-3 text-right">
+                ${col.nullable ? '<span class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">NULL</span>' : '<span class="text-[10px] text-red-400 font-bold uppercase tracking-tighter">NOT NULL</span>'}
+            </td>
+        </tr>
     `).join('');
 
     document.body.classList.add('modal-show');

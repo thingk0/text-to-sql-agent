@@ -24,21 +24,21 @@
         </div>
 
         <!-- Body -->
-        <div class="p-6 overflow-y-auto max-h-[60vh] scrollbar-hide">
-            <div class="space-y-4">
-                <div
-                    class="flex items-center justify-between px-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    <div class="flex items-center gap-6">
-                        <span class="w-4"></span>
-                        <span>Column Name</span>
-                    </div>
-                    <span>Type</span>
-                </div>
-
-                <div id="modal-columns-list" class="space-y-1">
-                    <!-- Column items injected here -->
-                </div>
-            </div>
+        <div class="p-0 overflow-y-auto max-h-[60vh] scrollbar-hide">
+            <table class="w-full text-left border-collapse">
+                <thead class="sticky top-0 bg-slate-50 border-b border-[#ececec] z-10">
+                    <tr>
+                        <th class="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">PK</th>
+                        <th class="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider text-right">
+                            Nullable</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-columns-list" class="divide-y divide-slate-50">
+                    <!-- Column rows injected here -->
+                </tbody>
+            </table>
         </div>
 
         <!-- Footer -->
