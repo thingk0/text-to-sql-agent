@@ -1,6 +1,7 @@
+import re
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class GenerateSQLRequestDTO(BaseModel):
@@ -41,3 +42,34 @@ class TablesListDTO(BaseModel):
 
 class SchemaContextDTO(BaseModel):
     context: str
+
+
+class ColumnDefinitionDTO(BaseModel):
+    name: str
+    type: str
+    is_primary_key: bool = False
+    is_nullable: bool = True
+    default_value: Optional[str] = None
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", v):
+            raise ValueError(
+                "컬럼명은 영문자나 언더바(_)로 시작해야 하며, 영문자, 숫자, 언더바만 포함할 수 있습니다."
+            )
+        return v
+
+
+class CreateTableRequestDTO(BaseModel):
+    table_name: str
+    columns: list[ColumnDefinitionDTO]
+
+    @field_validator("table_name")
+    @classmethod
+    def validate_table_name(cls, v: str) -> str:
+        if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", v):
+            raise ValueError(
+                "테이블명은 영문자나 언더바(_)로 시작해야 하며, 영문자, 숫자, 언더바만 포함할 수 있습니다."
+            )
+        return v

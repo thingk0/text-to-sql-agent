@@ -39,3 +39,18 @@ export async function generateSQL(userQuery, schemaContext) {
 
     return await response.json();
 }
+
+export async function createTable(tableData) {
+    const response = await fetch('/api/database/tables', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tableData)
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || '테이블 생성에 실패했습니다.');
+    }
+
+    return await response.json();
+}

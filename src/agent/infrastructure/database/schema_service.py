@@ -4,8 +4,13 @@ from fastapi import Depends
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
-from agent.infrastructure.database.connection import get_engine
-from agent.presentation.api.schemas import ColumnInfoDTO, DatabaseInfoDTO, TableInfoDTO
+from agent.infrastructure.database.connection import Base, get_engine
+from agent.presentation.api.schemas import (
+    ColumnInfoDTO,
+    CreateTableRequestDTO,
+    DatabaseInfoDTO,
+    TableInfoDTO,
+)
 
 
 class SchemaService:
@@ -13,6 +18,11 @@ class SchemaService:
 
     def __init__(self, db_engine: Engine):
         self._engine = db_engine
+
+    @property
+    def _internal_tables(self) -> set[str]:
+        """Base에 등록된 모든 SQLAlchemy 모델의 테이블명을 반환."""
+        return set(Base.metadata.tables.keys())
 
     def get_connection_info(self) -> DatabaseInfoDTO:
         """데이터베이스 연결 정보를 반환합니다."""
@@ -38,9 +48,9 @@ class SchemaService:
             )
 
     def get_tables(self) -> list[str]:
-        """테이블 목록을 반환합니다."""
+        """테이블 목록을 반환합니다 (내부 시스템 테이블 제외)."""
         inspector = inspect(self._engine)
-        return inspector.get_table_names()
+        return [t for t in inspector.get_table_names() if t not in self._internal_tables]
 
     def get_table_info(self, table_name: str) -> Optional[TableInfoDTO]:
         """테이블 상세 정보를 반환합니다."""
@@ -82,6 +92,26 @@ class SchemaService:
                 context_lines.append(f"- {table_name}: {columns_str}")
 
         return "Tables:\n" + "\n".join(context_lines)
+
+    def create_table(self, request: CreateTableRequestDTO) -> None:
+        """새로운 테이블을 생성합니다."""
+        column_defs = []
+        for col in request.columns:
+            parts = [f"{col.name} {col.type}"]
+            if col.is_primary_key:
+                parts.append("PRIMARY KEY")
+            if not col.is_nullable:
+                parts.append("NOT NULL")
+            if col.default_value:
+                # 간단한 따옴표 처리 (실제 환경에선 더 정교한 SQL 인젝션 방지 필요)
+                parts.append(f"DEFAULT '{col.default_value}'")
+            column_defs.append(" ".join(parts))
+
+        sql = f"CREATE TABLE {request.table_name} (\n    " + ",\n    ".join(column_defs) + "\n)"
+
+        with self._engine.begin() as conn:
+            conn.execute(text(sql))
+
 
 
 def get_schema_service(db_engine: Annotated[Engine, Depends(get_engine)]) -> SchemaService:

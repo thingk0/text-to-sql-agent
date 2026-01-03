@@ -79,13 +79,100 @@ export function showTableModal(tableName, columns) {
         </tr>
     `).join('');
 
-    document.body.classList.add('modal-show');
+    document.body.classList.add('show-table-modal');
     lucide.createIcons();
 }
 
 export function hideTableModal() {
-    document.body.classList.remove('modal-show');
+    document.body.classList.remove('show-table-modal');
 }
+
+export function showCreateTableModal() {
+    const modal = document.getElementById('create-table-modal');
+    const nameInput = document.getElementById('new-table-name');
+    const columnList = document.getElementById('column-definition-list');
+
+    nameInput.value = '';
+    columnList.innerHTML = '';
+    addColumnRow(); // 기본 컬럼 하나 추가
+
+    document.body.classList.add('show-create-table-modal');
+    lucide.createIcons();
+}
+
+export function hideCreateTableModal() {
+    document.body.classList.remove('show-create-table-modal');
+}
+
+export function addColumnRow() {
+    const list = document.getElementById('column-definition-list');
+    const row = document.createElement('div');
+    row.className = 'flex flex-col gap-2 bg-slate-50 p-3 rounded-2xl border border-[#ececec] group animate-fade-in animate-scale-in';
+    row.innerHTML = `
+        <div class="flex items-center gap-2">
+            <input type="text" placeholder="Column Name" class="col-name flex-1 bg-white border border-[#ececec] px-3 py-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+            <select class="col-type bg-white border border-[#ececec] px-3 py-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+                <option value="INTEGER">INTEGER</option>
+                <option value="TEXT">TEXT</option>
+                <option value="VARCHAR(255)">VARCHAR</option>
+                <option value="BOOLEAN">BOOLEAN</option>
+                <option value="DATETIME">DATETIME</option>
+                <option value="REAL">REAL</option>
+            </select>
+            <div class="flex items-center gap-3 px-2">
+                <label class="flex items-center gap-1 cursor-pointer group/pk">
+                    <input type="checkbox" class="col-pk rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/20">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover/pk:text-indigo-600 transition-colors">PK</span>
+                </label>
+                <label class="flex items-center gap-1 cursor-pointer group/null">
+                    <input type="checkbox" class="col-null rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/20" checked>
+                    <span class="text-[10px] font-bold text-slate-400 group-hover/null:text-indigo-600 transition-colors">NULL</span>
+                </label>
+            </div>
+            <button onclick="this.closest('.animate-fade-in').remove()" class="p-2 text-slate-300 hover:text-red-500 transition-colors hover:bg-red-50 rounded-lg">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </div>
+        <div class="col-error error-message px-1 hidden"></div>
+    `;
+    list.appendChild(row);
+    lucide.createIcons();
+}
+
+export function showInputError(inputElement, message) {
+    let errorEl;
+    if (typeof inputElement === 'string') {
+        errorEl = document.getElementById(inputElement + '-error');
+    } else {
+        // Find the nearest error div within the same container
+        errorEl = inputElement.closest('div').parentElement.querySelector('.error-message');
+    }
+
+    if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.remove('hidden');
+    }
+
+    // Highlight input
+    const input = typeof inputElement === 'string' ? document.getElementById(inputElement) : inputElement;
+    if (input) {
+        input.classList.add('border-red-400', 'bg-red-50/10');
+    }
+}
+
+export function clearInputErrors() {
+    const errors = document.querySelectorAll('.error-message');
+    errors.forEach(el => {
+        el.textContent = '';
+        el.classList.add('hidden');
+    });
+
+    const inputs = document.querySelectorAll('#create-table-modal-content input, #create-table-modal-content select');
+    inputs.forEach(el => {
+        el.classList.remove('border-red-400', 'bg-red-50/10');
+    });
+}
+
 
 export function initSidebarToggle() {
     const sidebar = document.querySelector('aside');

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from agent.infrastructure.database.schema_service import SchemaService, get_schema_service
 from agent.presentation.api.schemas import (
+    CreateTableRequestDTO,
     DatabaseInfoDTO,
     SchemaContextDTO,
     TableInfoDTO,
@@ -49,4 +50,17 @@ def get_schema_context(
 ):
     """LLM에 전달할 스키마 컨텍스트를 반환합니다."""
     return SchemaContextDTO(context=service.get_schema_context())
+
+
+@router.post("/tables", status_code=201)
+def create_table(
+    request: CreateTableRequestDTO,
+    service: Annotated[SchemaService, Depends(get_schema_service)],
+):
+    """새로운 테이블을 생성합니다."""
+    try:
+        service.create_table(request)
+        return {"message": f"Table '{request.table_name}' created successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 

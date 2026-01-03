@@ -1,0 +1,87 @@
+<!-- Create Table Modal -->
+<div id="create-table-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center hidden p-4 sm:p-6 animate-fade-in">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="closeCreateTableModal()">
+    </div>
+
+    <!-- Modal Content -->
+    <div class="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-[#ececec] overflow-hidden transform transition-all scale-95 opacity-0 duration-300"
+        id="create-table-modal-content">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-[#ececec] bg-slate-50/50">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-white border border-[#ececec] rounded-xl shadow-sm">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-600"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">새 테이블 생성</h3>
+                    <p class="text-xs text-slate-500 font-medium tracking-tight">테이블 이름과 컬럼을 정의하세요</p>
+                </div>
+            </div>
+            <button onclick="closeCreateTableModal()"
+                class="p-2 hover:bg-slate-200 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 overflow-y-auto max-h-[70vh] scrollbar-hide">
+            <div class="space-y-6">
+                <!-- Table Name -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Table
+                        Name</label>
+                    <input type="text" id="new-table-name" placeholder="테이블 명 입력 (예: users)"
+                        class="w-full px-4 py-3 bg-slate-50 border border-[#ececec] rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium text-slate-700">
+                    <div id="new-table-name-error" class="error-message px-2 pt-2 hidden"></div>
+                </div>
+
+                <!-- Columns -->
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Columns</label>
+                        <button onclick="addColumnRow()"
+                            class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors text-xs font-bold">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> 컬럼 추가
+                        </button>
+                    </div>
+
+                    <div id="column-definition-list" class="space-y-3">
+                        <!-- Column definition rows will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 bg-slate-50 border-t border-[#ececec] flex justify-end gap-3">
+            <button onclick="closeCreateTableModal()"
+                class="px-6 py-2.5 bg-white border border-[#ececec] text-slate-600 text-sm font-semibold rounded-2xl hover:bg-slate-100 transition-all active:scale-95">
+                취소
+            </button>
+            <button id="confirm-create-table-btn"
+                class="px-6 py-2.5 bg-black text-white text-sm font-semibold rounded-2xl hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-black/10 flex items-center gap-2">
+                테이블 생성
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .show-create-table-modal #create-table-modal {
+        display: flex;
+    }
+
+    .show-create-table-modal #create-table-modal-content {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .error-message {
+        font-size: 11px;
+        color: #ef4444;
+        font-weight: 600;
+        animation: fadeIn 0.3s ease-out;
+    }
+</style>
