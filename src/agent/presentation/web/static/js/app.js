@@ -10,6 +10,8 @@ const queryInput = document.getElementById('queryInput');
 const submitBtn = document.getElementById('submitBtn');
 
 let schemaContext = '';
+let isSubmitting = false;  // 중복 제출 방지 플래그
+let isComposingIME = false; // IME 조합 상태 추적
 
 // 전역 함수 등록 (HTML onclick 등에서 사용하기 위해)
 window.setExample = (text) => {
@@ -55,9 +57,13 @@ async function init() {
 
 // SQL 생성 및 전송
 async function handleSubmit() {
+    // 중복 제출 방지
+    if (isSubmitting) return;
+
     const query = queryInput.value.trim();
     if (!query) return;
 
+    isSubmitting = true;
     ui.addMessage(query, 'user');
     queryInput.value = '';
     queryInput.style.height = 'auto';
@@ -82,13 +88,27 @@ async function handleSubmit() {
         ui.addMessage('SQL 생성 중 오류가 발생했습니다. 다시 시도해주세요.', 'assistant');
     } finally {
         submitBtn.disabled = false;
+        isSubmitting = false;
     }
 }
 
 // 이벤트 바인딩
 submitBtn.addEventListener('click', handleSubmit);
 
+// IME 조합 상태 추적 (한글 입력 등)
+queryInput.addEventListener('compositionstart', () => {
+    isComposingIME = true;
+});
+
+queryInput.addEventListener('compositionend', () => {
+    isComposingIME = false;
+});
+
+// Enter 키 이벤트 (한글 IME 호환)
 queryInput.addEventListener('keydown', (e) => {
+    // IME 조합 중이거나 keyCode 229(IME 처리중)일 때는 무시
+    if (e.isComposing || isComposingIME || e.keyCode === 229) return;
+
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         handleSubmit();
@@ -97,3 +117,4 @@ queryInput.addEventListener('keydown', (e) => {
 
 // 초기 실행
 document.addEventListener('DOMContentLoaded', init);
+
