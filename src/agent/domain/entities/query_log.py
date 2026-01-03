@@ -16,8 +16,8 @@ class QueryLogStatus(Enum):
 class QueryLog:
     """도메인 엔티티: 사용자의 질의 실행 로그."""
 
+    user_query: str  # 필수 필드 (기본값 없음)
     id: UUID = field(default_factory=uuid4)
-    user_query: str
     generated_sql: Optional[str] = None
     status: QueryLogStatus = QueryLogStatus.PENDING
     error_message: Optional[str] = None

@@ -13,8 +13,10 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "postgresql://user:password@localhost:5432/dbname"
 
-    # OpenAI
+    # OpenAI (Novita.ai 호환)
     openai_api_key: str = ""
+    openai_base_url: str = ""
+    openai_model: str = ""
 
     # Application
     app_env: str = "development"
