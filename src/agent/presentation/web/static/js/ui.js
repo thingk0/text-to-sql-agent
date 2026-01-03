@@ -1,17 +1,17 @@
+/**
+ * UI 렌더링 및 DOM 제어 모듈
+ */
+
 const messagesContainer = document.getElementById('messages');
-const queryForm = document.getElementById('queryForm');
-const queryInput = document.getElementById('queryInput');
 const welcomeView = document.getElementById('welcome-view');
 
-let isFirstMessage = true;
-
-function setExample(text) {
-    queryInput.value = text;
-    queryInput.dispatchEvent(new Event('input'));
-    queryInput.focus();
+export function hideWelcome() {
+    if (welcomeView && !welcomeView.classList.contains('hidden')) {
+        welcomeView.classList.add('hidden');
+    }
 }
 
-function createAvatar(type) {
+export function createAvatar(type) {
     const div = document.createElement('div');
     div.className = `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 ${type === 'user' ? 'bg-indigo-600 text-white' : 'bg-emerald-500 text-white'
         }`;
@@ -24,11 +24,8 @@ function createAvatar(type) {
     return div;
 }
 
-function addMessage(content, type = 'user') {
-    if (isFirstMessage) {
-        welcomeView.classList.add('hidden');
-        isFirstMessage = false;
-    }
+export function addMessage(content, type = 'user') {
+    hideWelcome();
 
     const wrapper = document.createElement('div');
     wrapper.className = `w-full py-6 flex ${type === 'user' ? 'bg-white' : 'bg-slate-50'}`;
@@ -42,7 +39,7 @@ function addMessage(content, type = 'user') {
 
     const name = document.createElement('p');
     name.className = 'text-sm font-bold text-slate-900 capitalize';
-    name.textContent = type;
+    name.textContent = type === 'user' ? 'User' : 'Agent';
 
     const message = document.createElement('div');
     message.className = 'text-[15px] leading-relaxed text-slate-800 whitespace-pre-wrap';
@@ -50,7 +47,6 @@ function addMessage(content, type = 'user') {
 
     contentDiv.appendChild(name);
     contentDiv.appendChild(message);
-
     container.appendChild(avatar);
     container.appendChild(contentDiv);
     wrapper.appendChild(container);
@@ -60,11 +56,8 @@ function addMessage(content, type = 'user') {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-function addSQLMessage(query, explanation) {
-    if (isFirstMessage) {
-        welcomeView.classList.add('hidden');
-        isFirstMessage = false;
-    }
+export function addSQLMessage(query, explanation) {
+    hideWelcome();
 
     const wrapper = document.createElement('div');
     wrapper.className = 'w-full py-6 flex bg-slate-50';
@@ -89,7 +82,12 @@ function addSQLMessage(query, explanation) {
 
     const codeHeader = document.createElement('div');
     codeHeader.className = 'bg-black/20 px-4 py-2 flex justify-between items-center border-b border-white/5';
-    codeHeader.innerHTML = '<span class="text-xs font-mono text-slate-400 capitalize">sql</span><button class="text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1"><i data-lucide="copy" class="w-3 h-3"></i> Copy</button>';
+    codeHeader.innerHTML = `
+        <span class="text-xs font-mono text-slate-400 capitalize">sql</span>
+        <button class="copy-btn text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1">
+            <i data-lucide="copy" class="w-3 h-3"></i> Copy
+        </button>
+    `;
 
     const pre = document.createElement('pre');
     pre.className = 'p-4 overflow-x-auto text-[13px] font-mono text-[#4ec9b0] leading-relaxed scrollbar-hide';
@@ -99,11 +97,9 @@ function addSQLMessage(query, explanation) {
 
     codeWrapper.appendChild(codeHeader);
     codeWrapper.appendChild(pre);
-
     contentDiv.appendChild(name);
     contentDiv.appendChild(explanationP);
     contentDiv.appendChild(codeWrapper);
-
     container.appendChild(avatar);
     container.appendChild(contentDiv);
     wrapper.appendChild(container);
@@ -111,38 +107,46 @@ function addSQLMessage(query, explanation) {
 
     lucide.createIcons();
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    return codeWrapper; // 복사 이벤트 바인딩을 위해 반환
 }
 
-queryForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const query = queryInput.value.trim();
-    if (!query) return;
+export function updateDatabaseStatus(data) {
+    const statusEl = document.getElementById('db-status');
+    const typeEl = document.getElementById('db-type');
 
-    addMessage(query, 'user');
-    queryInput.value = '';
-    queryInput.style.height = 'auto';
-
-    setTimeout(() => {
-        const demoSQL = `-- 요청하신 데이터 분석 쿼리입니다
-SELECT 
-    p.product_name, 
-    SUM(s.quantity) as total_units,
-    SUM(s.quantity * p.price) as total_revenue
-FROM sales s
-JOIN products p ON s.product_id = p.id
-WHERE s.sale_date >= DATE_TRUNC('month', CURRENT_DATE)
-GROUP BY p.product_name
-ORDER BY total_revenue DESC
-LIMIT 5;`;
-
-        addSQLMessage(demoSQL, '데이터베이스를 분석한 결과, 이번 달 매출 성적이 가장 좋은 상위 5개 제품 리스트를 생성했습니다.');
-    }, 800);
-});
-
-// 엔터 키 처리 (Shift+Enter는 줄바꿈)
-queryInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        queryForm.dispatchEvent(new Event('submit'));
+    if (data.connected) {
+        statusEl.innerHTML = `
+            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+            Connected (${data.tables_count} tables)
+        `;
+        statusEl.className = 'flex items-center gap-1.5 text-emerald-600 font-medium';
+    } else {
+        statusEl.innerHTML = `
+            <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+            Disconnected
+        `;
+        statusEl.className = 'flex items-center gap-1.5 text-red-600 font-medium';
     }
-});
+    typeEl.textContent = data.database_type || '-';
+}
+
+export function renderTablesList(tables, onTableClick) {
+    const tablesListEl = document.getElementById('tables-list');
+
+    if (tables.length === 0) {
+        tablesListEl.innerHTML = '<div class="px-3 py-2 text-xs text-slate-400">테이블 없음</div>';
+        return;
+    }
+
+    tablesListEl.innerHTML = '';
+    tables.forEach(table => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full text-left px-3 py-1.5 text-xs text-slate-600 hover:bg-[#ececec] rounded-lg truncate transition-colors flex items-center gap-2';
+        btn.innerHTML = `<i data-lucide="table-2" class="w-3 h-3 text-slate-400"></i> ${table}`;
+        btn.onclick = () => onTableClick(table);
+        tablesListEl.appendChild(btn);
+    });
+
+    lucide.createIcons();
+}
