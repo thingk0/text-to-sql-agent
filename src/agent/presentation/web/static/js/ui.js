@@ -71,6 +71,7 @@ export function showCreateTableModal() {
     addColumnRow(); // 기본 컬럼 하나 추가
 
     document.body.classList.add('show-create-table-modal');
+    updateDDLPreview(); // Initial preview
     lucide.createIcons();
 }
 
@@ -81,7 +82,7 @@ export function hideCreateTableModal() {
 export function addColumnRow() {
     const list = document.getElementById('column-definition-list');
     const row = document.createElement('div');
-    row.className = 'flex flex-col gap-2 bg-slate-50 p-3 rounded-2xl border border-[#ececec] group animate-fade-in animate-scale-in';
+    row.className = 'flex flex-col gap-3 bg-slate-50 p-4 rounded-2xl border border-[#ececec] group animate-fade-in animate-scale-in';
     row.innerHTML = `
         <div class="flex items-center gap-2">
             <input type="text" placeholder="Column Name" class="col-name flex-1 bg-white border border-[#ececec] px-3 py-2 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
@@ -93,24 +94,87 @@ export function addColumnRow() {
                 <option value="DATETIME">DATETIME</option>
                 <option value="REAL">REAL</option>
             </select>
-            <div class="flex items-center gap-3 px-2">
-                <label class="flex items-center gap-1 cursor-pointer group/pk">
+            <button onclick="this.closest('.animate-fade-in').remove(); updateDDLPreview();" class="p-2 text-slate-300 hover:text-red-500 transition-colors hover:bg-red-50 rounded-lg">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </div>
+        <div class="flex items-center gap-4 flex-wrap">
+            <div class="flex items-center gap-3">
+                <label class="flex items-center gap-1.5 cursor-pointer group/pk">
                     <input type="checkbox" class="col-pk rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/20">
                     <span class="text-[10px] font-bold text-slate-400 group-hover/pk:text-indigo-600 transition-colors">PK</span>
                 </label>
-                <label class="flex items-center gap-1 cursor-pointer group/null">
+                <label class="flex items-center gap-1.5 cursor-pointer group/null">
                     <input type="checkbox" class="col-null rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/20" checked>
                     <span class="text-[10px] font-bold text-slate-400 group-hover/null:text-indigo-600 transition-colors">NULL</span>
                 </label>
+                <label class="flex items-center gap-1.5 cursor-pointer group/unique">
+                    <input type="checkbox" class="col-unique rounded border-slate-300 text-amber-600 focus:ring-amber-500/20">
+                    <span class="text-[10px] font-bold text-slate-400 group-hover/unique:text-amber-600 transition-colors">UNIQUE</span>
+                </label>
             </div>
-            <button onclick="this.closest('.animate-fade-in').remove()" class="p-2 text-slate-300 hover:text-red-500 transition-colors hover:bg-red-50 rounded-lg">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-bold text-slate-400">DEFAULT:</span>
+                <input type="text" placeholder="(optional)" class="col-default bg-white border border-[#ececec] px-2 py-1 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all w-24">
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold text-slate-400">FK:</span>
+            <input type="text" placeholder="참조 테이블" class="col-fk-table bg-white border border-[#ececec] px-2 py-1.5 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all w-28">
+            <span class="text-slate-300">.</span>
+            <input type="text" placeholder="참조 컬럼" class="col-fk-column bg-white border border-[#ececec] px-2 py-1.5 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all w-28">
         </div>
         <div class="col-error error-message px-1 hidden"></div>
     `;
     list.appendChild(row);
+
+    // Attach listeners to all inputs/selects in this row
+    row.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input', updateDDLPreview);
+    });
+
     lucide.createIcons();
+    updateDDLPreview();
+}
+
+export function updateDDLPreview() {
+    const tableName = document.getElementById('new-table-name').value.trim() || 'table_name';
+    const columnRows = document.querySelectorAll('#column-definition-list > div');
+
+    const lines = [];
+    const fkConstraints = [];
+
+    columnRows.forEach(row => {
+        const name = row.querySelector('.col-name').value.trim() || 'column_name';
+        const type = row.querySelector('.col-type').value;
+        const isPk = row.querySelector('.col-pk').checked;
+        const isNull = row.querySelector('.col-null').checked;
+        const isUnique = row.querySelector('.col-unique').checked;
+        const defaultValue = row.querySelector('.col-default').value.trim();
+        const fkTable = row.querySelector('.col-fk-table').value.trim();
+        const fkColumn = row.querySelector('.col-fk-column').value.trim();
+
+        let parts = [`${name} ${type}`];
+        if (isPk) parts.push('PRIMARY KEY');
+        if (!isNull) parts.push('NOT NULL');
+        if (isUnique) parts.push('UNIQUE');
+        if (defaultValue) parts.push(`DEFAULT '${defaultValue}'`);
+
+        lines.push(parts.join(' '));
+
+        if (fkTable && fkColumn) {
+            fkConstraints.push(`FOREIGN KEY (${name}) REFERENCES ${fkTable}(${fkColumn})`);
+        }
+    });
+
+    const allLines = [...lines, ...fkConstraints];
+    const sql = `CREATE TABLE ${tableName} (\n  ${allLines.join(',\n  ')}\n);`;
+
+    const previewEl = document.getElementById('create-table-ddl-preview');
+    if (previewEl) {
+        previewEl.textContent = sql;
+        Prism.highlightElement(previewEl);
+    }
 }
 
 export function showInputError(inputElement, message) {

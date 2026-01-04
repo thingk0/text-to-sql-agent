@@ -44,12 +44,19 @@ class SchemaContextDTO(BaseModel):
     context: str
 
 
+class ForeignKeyReferenceDTO(BaseModel):
+    table: str
+    column: str
+
+
 class ColumnDefinitionDTO(BaseModel):
     name: str
     type: str
     is_primary_key: bool = False
     is_nullable: bool = True
+    is_unique: bool = False
     default_value: Optional[str] = None
+    fk_reference: Optional[ForeignKeyReferenceDTO] = None
 
     @field_validator("name")
     @classmethod

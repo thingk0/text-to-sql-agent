@@ -141,13 +141,25 @@ async function handleCreateTable() {
     const columnRows = document.querySelectorAll('#column-definition-list > div');
     const columns = Array.from(columnRows).map(row => {
         const input = row.querySelector('.col-name');
-        return {
+        const fkTable = row.querySelector('.col-fk-table')?.value.trim() || '';
+        const fkColumn = row.querySelector('.col-fk-column')?.value.trim() || '';
+
+        const col = {
             input: input,
             name: input.value.trim(),
             type: row.querySelector('.col-type').value,
             is_primary_key: row.querySelector('.col-pk').checked,
-            is_nullable: row.querySelector('.col-null').checked
+            is_nullable: row.querySelector('.col-null').checked,
+            is_unique: row.querySelector('.col-unique')?.checked || false,
+            default_value: row.querySelector('.col-default')?.value.trim() || null
         };
+
+        // FK 설정이 둘 다 있는 경우에만 추가
+        if (fkTable && fkColumn) {
+            col.fk_reference = { table: fkTable, column: fkColumn };
+        }
+
+        return col;
     });
 
     if (columns.length === 0) {
@@ -231,6 +243,15 @@ const confirmCreateBtn = document.getElementById('confirm-create-table-btn');
 if (confirmCreateBtn) {
     confirmCreateBtn.addEventListener('click', handleCreateTable);
 }
+
+// 테이블 이름 입력 시 DDL 미리보기 갱신
+const newTableNameInput = document.getElementById('new-table-name');
+if (newTableNameInput) {
+    newTableNameInput.addEventListener('input', ui.updateDDLPreview);
+}
+
+// Global exposure for UI helpers
+window.updateDDLPreview = ui.updateDDLPreview;
 
 
 // 초기 실행

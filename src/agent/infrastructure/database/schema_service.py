@@ -98,18 +98,29 @@ class SchemaService:
     def create_table(self, request: CreateTableRequestDTO) -> None:
         """새로운 테이블을 생성합니다."""
         column_defs = []
+        fk_constraints = []
+
         for col in request.columns:
             parts = [f"{col.name} {col.type}"]
             if col.is_primary_key:
                 parts.append("PRIMARY KEY")
             if not col.is_nullable:
                 parts.append("NOT NULL")
+            if col.is_unique:
+                parts.append("UNIQUE")
             if col.default_value:
                 # 간단한 따옴표 처리 (실제 환경에선 더 정교한 SQL 인젝션 방지 필요)
                 parts.append(f"DEFAULT '{col.default_value}'")
             column_defs.append(" ".join(parts))
 
-        sql = f"CREATE TABLE {request.table_name} (\n    " + ",\n    ".join(column_defs) + "\n)"
+            # FK 제약조건 수집
+            if col.fk_reference:
+                fk_constraints.append(
+                    f"FOREIGN KEY ({col.name}) REFERENCES {col.fk_reference.table}({col.fk_reference.column})"
+                )
+
+        all_defs = column_defs + fk_constraints
+        sql = f"CREATE TABLE {request.table_name} (\n    " + ",\n    ".join(all_defs) + "\n)"
 
         with self._engine.begin() as conn:
             conn.execute(text(sql))
