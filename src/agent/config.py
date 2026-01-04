@@ -22,5 +22,8 @@ class Settings(BaseSettings):
     app_env: str = "development"
     log_level: str = "INFO"
 
+    # ChromaDB
+    chroma_persist_dir: str = "./chroma_db"
+
 
 settings = Settings()

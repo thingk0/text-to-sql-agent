@@ -9,6 +9,7 @@ from agent.infrastructure.llm.langchain_client import LangChainSQLGenerator
 from agent.infrastructure.repositories.sqlalchemy_query_log_repository import (
     SQLAlchemyQueryLogRepository,
 )
+from agent.infrastructure.vectorstore.schema_retriever import get_schema_retriever
 from agent.presentation.api.dependencies import get_db
 from agent.presentation.api.schemas import (
     GenerateSQLRequestDTO,
@@ -26,10 +27,12 @@ def generate_sql(
     """자연어를 SQL로 변환합니다."""
     repository = SQLAlchemyQueryLogRepository(db)
     generator = LangChainSQLGenerator()
+    schema_retriever = get_schema_retriever()
 
     use_case = GenerateSQLUseCase(
         query_log_repository=repository,
         sql_generator=generator,
+        schema_retriever=schema_retriever,
     )
 
     try:

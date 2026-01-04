@@ -69,3 +69,6 @@ logs/
 
 # SQLite database
 *.db
+
+# ChromaDB vector store
+chroma_db/
