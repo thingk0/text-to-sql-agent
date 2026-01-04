@@ -204,9 +204,93 @@
     let currentSchema = [];
 
     async function init() {
+        // Initialize sidebar (DB info, tables list)
+        await initSidebar();
+
+        // Initialize table detail content
         await refreshSchema();
         await refreshData();
         window.lucide.createIcons();
+    }
+
+    async function initSidebar() {
+        try {
+            // Load DB info
+            const dbInfo = await api.fetchDatabaseInfo();
+            updateDatabaseStatus(dbInfo);
+
+            // Load tables list
+            const tablesData = await api.fetchTables();
+            renderTablesList(tablesData.tables);
+
+            // Setup sidebar toggle
+            initSidebarToggle();
+        } catch (error) {
+            console.error('Sidebar initialization failed:', error);
+        }
+    }
+
+    function updateDatabaseStatus(data) {
+        const statusEl = document.getElementById('db-status');
+        const typeEl = document.getElementById('db-type');
+
+        if (!statusEl || !typeEl) return;
+
+        if (data.connected) {
+            statusEl.innerHTML = `
+                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                Connected (${data.tables_count} tables)
+            `;
+            statusEl.className = 'flex items-center gap-1.5 text-emerald-600 font-medium';
+        } else {
+            statusEl.innerHTML = `
+                <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                Disconnected
+            `;
+            statusEl.className = 'flex items-center gap-1.5 text-red-600 font-medium';
+        }
+        typeEl.textContent = data.database_type || '-';
+    }
+
+    function renderTablesList(tables) {
+        const tablesListEl = document.getElementById('tables-list');
+        if (!tablesListEl) return;
+
+        if (tables.length === 0) {
+            tablesListEl.innerHTML = '<div class="px-3 py-2 text-xs text-slate-400">테이블 없음</div>';
+            return;
+        }
+
+        tablesListEl.innerHTML = '';
+        tables.forEach(table => {
+            const btn = document.createElement('button');
+            btn.className = `w-full text-left px-3 py-1.5 text-xs text-slate-600 hover:bg-[#ececec] rounded-lg truncate transition-colors flex items-center gap-2 ${table === tableName ? 'bg-indigo-50 text-indigo-600 font-semibold' : ''}`;
+            btn.innerHTML = `<i data-lucide="table-2" class="w-3 h-3 ${table === tableName ? 'text-indigo-500' : 'text-slate-400'}"></i> ${table}`;
+            btn.onclick = () => {
+                window.location.href = `/tables/${encodeURIComponent(table)}`;
+            };
+            tablesListEl.appendChild(btn);
+        });
+
+        window.lucide.createIcons();
+    }
+
+    function initSidebarToggle() {
+        const sidebar = document.querySelector('aside');
+        const closeBtn = document.getElementById('sidebar-close-btn');
+        const openBtn = document.getElementById('sidebar-open-btn');
+
+        if (!sidebar || !closeBtn || !openBtn) return;
+
+        closeBtn.addEventListener('click', () => {
+            sidebar.classList.add('sidebar-collapsed');
+            openBtn.classList.remove('hidden');
+        });
+
+        openBtn.addEventListener('click', () => {
+            sidebar.classList.remove('sidebar-collapsed');
+            openBtn.classList.add('hidden');
+        });
     }
 
     window.switchTab = (tab) => {
