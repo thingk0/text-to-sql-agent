@@ -90,3 +90,12 @@ class RenameTableRequestDTO(BaseModel):
 
 class AddColumnRequestDTO(BaseModel):
     column: ColumnDefinitionDTO
+
+
+class TableDataDTO(BaseModel):
+    columns: list[str]
+    rows: list[dict]
+
+
+class InsertRowRequestDTO(BaseModel):
+    data: dict

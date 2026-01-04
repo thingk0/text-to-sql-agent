@@ -26,3 +26,17 @@ async def home(request: Request):
             "env": settings.app_env,
         },
     )
+
+
+@router.get("/tables/{table_name}", response_class=HTMLResponse, include_in_schema=False)
+async def table_detail(request: Request, table_name: str):
+    """테이블 상세 관리 페이지."""
+    return templates.TemplateResponse(
+        "table_detail.html",
+        {
+            "request": request,
+            "title": f"Table: {table_name}",
+            "table_name": table_name,
+            "env": settings.app_env,
+        },
+    )

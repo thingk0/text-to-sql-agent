@@ -9,8 +9,10 @@ from agent.presentation.api.schemas import (
     DatabaseInfoDTO,
     RenameTableRequestDTO,
     SchemaContextDTO,
+    TableDataDTO,
     TableInfoDTO,
     TablesListDTO,
+    InsertRowRequestDTO,
 )
 
 router = APIRouter(prefix="/api/database", tags=["Database"])
@@ -118,5 +120,33 @@ def drop_column(
     try:
         service.drop_column(table_name, column_name)
         return {"message": f"Column '{column_name}' dropped from '{table_name}'"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/tables/{table_name}/data", response_model=TableDataDTO)
+def get_table_data(
+    table_name: str,
+    limit: int = 100,
+    offset: int = 0,
+    service: Annotated[SchemaService, Depends(get_schema_service)] = None,
+):
+    """테이블의 데이터를 반환합니다."""
+    try:
+        return service.get_table_data(table_name, limit, offset)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/tables/{table_name}/rows", status_code=201)
+def add_row(
+    table_name: str,
+    request: InsertRowRequestDTO,
+    service: Annotated[SchemaService, Depends(get_schema_service)] = None,
+):
+    """테이블에 새로운 행을 추가합니다."""
+    try:
+        service.add_row(table_name, request.data)
+        return {"message": "Row added successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

@@ -19,7 +19,7 @@ export async function fetchSchemaContext() {
 }
 
 export async function fetchTableDetail(tableName) {
-    const response = await fetch(`/api/database/tables/${tableName}`);
+    const response = await fetch(`/api/database/tables/${encodeURIComponent(tableName)}`);
     return await response.json();
 }
 
@@ -56,7 +56,7 @@ export async function createTable(tableData) {
 }
 
 export async function deleteTable(tableName) {
-    const response = await fetch(`/api/database/tables/${tableName}`, {
+    const response = await fetch(`/api/database/tables/${encodeURIComponent(tableName)}`, {
         method: 'DELETE'
     });
 
@@ -69,7 +69,7 @@ export async function deleteTable(tableName) {
 }
 
 export async function renameTable(oldName, newName) {
-    const response = await fetch(`/api/database/tables/${oldName}`, {
+    const response = await fetch(`/api/database/tables/${encodeURIComponent(oldName)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ new_name: newName })
@@ -84,7 +84,7 @@ export async function renameTable(oldName, newName) {
 }
 
 export async function addColumn(tableName, columnData) {
-    const response = await fetch(`/api/database/tables/${tableName}/columns`, {
+    const response = await fetch(`/api/database/tables/${encodeURIComponent(tableName)}/columns`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ column: columnData })
@@ -99,13 +99,33 @@ export async function addColumn(tableName, columnData) {
 }
 
 export async function dropColumn(tableName, columnName) {
-    const response = await fetch(`/api/database/tables/${tableName}/columns/${columnName}`, {
+    const response = await fetch(`/api/database/tables/${encodeURIComponent(tableName)}/columns/${encodeURIComponent(columnName)}`, {
         method: 'DELETE'
     });
 
     if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || '컬럼 삭제에 실패했습니다.');
+    }
+
+    return await response.json();
+}
+
+export async function fetchTableData(tableName, limit = 100, offset = 0) {
+    const response = await fetch(`/api/database/tables/${encodeURIComponent(tableName)}/data?limit=${limit}&offset=${offset}`);
+    return await response.json();
+}
+
+export async function insertTableRow(tableName, data) {
+    const response = await fetch(`/api/database/tables/${encodeURIComponent(tableName)}/rows`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data })
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || '행 추가에 실패했습니다.');
     }
 
     return await response.json();

@@ -10,6 +10,7 @@ from agent.presentation.api.schemas import (
     ColumnInfoDTO,
     CreateTableRequestDTO,
     DatabaseInfoDTO,
+    TableDataDTO,
     TableInfoDTO,
 )
 
@@ -154,6 +155,31 @@ class SchemaService:
         sql = f"ALTER TABLE {table_name} DROP COLUMN {column_name}"
         with self._engine.begin() as conn:
             conn.execute(text(sql))
+
+    def get_table_data(self, table_name: str, limit: int = 100, offset: int = 0) -> TableDataDTO:
+        """테이블의 데이터를 조회합니다."""
+        if table_name in self._internal_tables:
+            raise ValueError(f"시스템 테이블 '{table_name}'은(는) 조회할 수 없습니다.")
+
+        sql = f"SELECT * FROM {table_name} LIMIT :limit OFFSET :offset"
+        with self._engine.connect() as conn:
+            result = conn.execute(text(sql), {"limit": limit, "offset": offset})
+            columns = list(result.keys())
+            rows = [dict(row._mapping) for row in result]
+
+        return TableDataDTO(columns=columns, rows=rows)
+
+    def add_row(self, table_name: str, data: dict) -> None:
+        """테이블에 새로운 행을 추가합니다."""
+        if table_name in self._internal_tables:
+            raise ValueError(f"시스템 테이블 '{table_name}'은(는) 수정할 수 없습니다.")
+
+        cols = ", ".join(data.keys())
+        placeholders = ", ".join([f":{k}" for k in data.keys()])
+        sql = f"INSERT INTO {table_name} ({cols}) VALUES ({placeholders})"
+
+        with self._engine.begin() as conn:
+            conn.execute(text(sql), data)
 
 
 def get_schema_service(db_engine: Annotated[Engine, Depends(get_engine)]) -> SchemaService:
