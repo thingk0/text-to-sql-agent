@@ -18,8 +18,29 @@ from agent.presentation.api.schemas import (
 class SchemaService:
     """데이터베이스 스키마 조회 서비스."""
 
-    def __init__(self, db_engine: Engine):
+    def __init__(self, db_engine: Engine, schema_indexer=None):
         self._engine = db_engine
+        self._indexer = schema_indexer
+
+    def set_indexer(self, indexer) -> None:
+        """스키마 인덱서를 설정합니다 (순환 의존성 방지용)."""
+        self._indexer = indexer
+
+    def _trigger_index(self, table_name: str) -> None:
+        """테이블 인덱스를 갱신합니다."""
+        if self._indexer:
+            try:
+                self._indexer.index_table(table_name)
+            except Exception as e:
+                print(f"[RAG] Index update failed for {table_name}: {e}")
+
+    def _trigger_remove(self, table_name: str) -> None:
+        """테이블 인덱스를 제거합니다."""
+        if self._indexer:
+            try:
+                self._indexer.remove_table(table_name)
+            except Exception as e:
+                print(f"[RAG] Index removal failed for {table_name}: {e}")
 
     @property
     def _internal_tables(self) -> set[str]:
@@ -109,11 +130,9 @@ class SchemaService:
             if col.is_unique:
                 parts.append("UNIQUE")
             if col.default_value:
-                # 간단한 따옴표 처리 (실제 환경에선 더 정교한 SQL 인젝션 방지 필요)
                 parts.append(f"DEFAULT '{col.default_value}'")
             column_defs.append(" ".join(parts))
 
-            # FK 제약조건 수집
             if col.fk_reference:
                 fk_constraints.append(
                     f"FOREIGN KEY ({col.name}) REFERENCES {col.fk_reference.table}({col.fk_reference.column})"
@@ -124,6 +143,8 @@ class SchemaService:
 
         with self._engine.begin() as conn:
             conn.execute(text(sql))
+        
+        self._trigger_index(request.table_name)
 
     def drop_table(self, table_name: str) -> None:
         """테이블을 삭제합니다."""
@@ -133,6 +154,8 @@ class SchemaService:
         sql = f"DROP TABLE IF EXISTS {table_name}"
         with self._engine.begin() as conn:
             conn.execute(text(sql))
+        
+        self._trigger_remove(table_name)
 
     def rename_table(self, old_name: str, new_name: str) -> None:
         """테이블 이름을 변경합니다."""
@@ -142,6 +165,9 @@ class SchemaService:
         sql = f"ALTER TABLE {old_name} RENAME TO {new_name}"
         with self._engine.begin() as conn:
             conn.execute(text(sql))
+        
+        self._trigger_remove(old_name)
+        self._trigger_index(new_name)
 
     def add_column(self, table_name: str, column: ColumnDefinitionDTO) -> None:
         """테이블에 컬럼을 추가합니다."""
@@ -157,6 +183,8 @@ class SchemaService:
         sql = " ".join(parts)
         with self._engine.begin() as conn:
             conn.execute(text(sql))
+        
+        self._trigger_index(table_name)
 
     def drop_column(self, table_name: str, column_name: str) -> None:
         """테이블에서 컬럼을 삭제합니다."""
@@ -166,6 +194,8 @@ class SchemaService:
         sql = f"ALTER TABLE {table_name} DROP COLUMN {column_name}"
         with self._engine.begin() as conn:
             conn.execute(text(sql))
+        
+        self._trigger_index(table_name)
 
     def get_table_data(self, table_name: str, limit: int = 100, offset: int = 0) -> TableDataDTO:
         """테이블의 데이터를 조회합니다."""

@@ -20,13 +20,9 @@ async def lifespan(app: FastAPI):
     
     # Index schemas for RAG on startup
     try:
-        from agent.infrastructure.database.connection import get_engine
-        from agent.infrastructure.database.schema_service import SchemaService
-        from agent.application.services.schema_indexer import get_schema_indexer
+        from agent.infrastructure.database.globals import init_schema_services
         
-        schema_service = SchemaService(db_engine=get_engine())
-        indexer = get_schema_indexer(schema_service)
-        indexed_count = indexer.index_all_tables()
+        indexed_count = init_schema_services()
         print(f"[RAG] Indexed {indexed_count} tables for schema retrieval")
     except Exception as e:
         print(f"[RAG] Schema indexing failed: {e}")
