@@ -1,24 +1,36 @@
-<aside class="w-[260px] bg-[#f9f9f9] border-r border-[#ececec] flex flex-col hidden md:flex">
-    <!-- Header: New Chat & Close Toggle -->
-    <div class="p-4 flex items-center gap-2">
-        <button onclick="window.location.reload()"
-            class="flex-1 flex items-center gap-3 px-3 py-2 text-sm font-medium hover:bg-[#ececec] rounded-lg transition-colors group">
-            <div
-                class="p-1 bg-white border border-[#ececec] rounded shadow-sm group-hover:border-slate-300 transition-colors">
-                <i data-lucide="plus" class="w-4 h-4"></i>
+<aside class="w-[260px] bg-[#f9f9f9] border-r border-[#ececec] flex flex-col hidden md:flex h-screen sticky top-0">
+    <!-- Header: Logo & Close Toggle -->
+    <div class="px-6 py-5 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <div class="font-bold text-lg flex items-center gap-2 tracking-tight">
+                <span class="text-slate-900">Agent SQL</span>
+                <span
+                    class="text-[10px] bg-indigo-50 text-indigo-500 px-1.5 py-0.5 rounded-lg font-black uppercase tracking-wider">Beta</span>
             </div>
-            <span>새 대화</span>
-        </button>
-        <button id="sidebar-close-btn" class="p-2 hover:bg-[#ececec] rounded-lg text-slate-500 transition-colors"
+        </div>
+        <button id="sidebar-close-btn"
+            class="p-1.5 hover:bg-[#ececec] rounded-lg text-slate-400 hover:text-slate-600 transition-all"
             title="사이드바 닫기">
             <i data-lucide="panel-left-close" class="w-4 h-4"></i>
         </button>
     </div>
 
     <!-- Scrollable Content -->
-    <div class="flex-1 overflow-y-auto px-4 py-2 space-y-6 mt-2 scrollbar-hide">
+    <div class="flex-1 overflow-y-auto px-4 py-2 space-y-6 scrollbar-hide">
         {% include 'components/sidebar/db_panel.html' %}
         {% include 'components/sidebar/tables_panel.html' %}
         {% include 'components/sidebar/examples_panel.html' %}
+    </div>
+
+    <!-- Footer: New Chat -->
+    <div class="p-4 border-t border-[#f1f1f1] bg-[#f9f9f9]">
+        <button onclick="window.location.reload()"
+            class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-white border border-transparent hover:border-[#ececec] rounded-xl transition-all shadow-sm hover:shadow-md group active:scale-[0.98]">
+            <div
+                class="p-1.5 bg-white border border-[#ececec] rounded-lg shadow-sm group-hover:bg-indigo-50 group-hover:border-indigo-100 transition-colors">
+                <i data-lucide="plus" class="w-4 h-4 text-slate-600 group-hover:text-indigo-600"></i>
+            </div>
+            <span>새 대화 시작하기</span>
+        </button>
     </div>
 </aside>

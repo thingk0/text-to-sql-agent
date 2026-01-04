@@ -33,7 +33,7 @@ class SchemaService:
                 conn.execute(text("SELECT 1"))
 
             inspector = inspect(self._engine)
-            tables = inspector.get_table_names()
+            tables = [t for t in inspector.get_table_names() if t not in self._internal_tables]
 
             return DatabaseInfoDTO(
                 connected=True,

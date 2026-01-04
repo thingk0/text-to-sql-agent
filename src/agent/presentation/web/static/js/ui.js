@@ -216,17 +216,20 @@ export function initSidebarToggle() {
     const sidebar = document.querySelector('aside');
     const closeBtn = document.getElementById('sidebar-close-btn');
     const openBtn = document.getElementById('sidebar-open-btn');
+    const headerLogo = document.getElementById('header-logo');
 
     if (!sidebar || !closeBtn || !openBtn) return;
 
     closeBtn.addEventListener('click', () => {
         sidebar.classList.add('sidebar-collapsed');
         openBtn.classList.remove('hidden');
+        if (headerLogo) headerLogo.classList.remove('md:hidden');
     });
 
     openBtn.addEventListener('click', () => {
         sidebar.classList.remove('sidebar-collapsed');
         openBtn.classList.add('hidden');
+        if (headerLogo) headerLogo.classList.add('md:hidden');
     });
 }
 
